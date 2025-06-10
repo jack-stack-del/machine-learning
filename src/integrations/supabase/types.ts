@@ -9,7 +9,260 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      courses: {
+        Row: {
+          created_at: string
+          description_sv: string | null
+          id: string
+          title_sv: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description_sv?: string | null
+          id?: string
+          title_sv: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description_sv?: string | null
+          id?: string
+          title_sv?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      flashcards: {
+        Row: {
+          back_sv: string
+          created_at: string
+          front_sv: string
+          id: string
+          lesson_id: string
+          updated_at: string
+        }
+        Insert: {
+          back_sv: string
+          created_at?: string
+          front_sv: string
+          id?: string
+          lesson_id: string
+          updated_at?: string
+        }
+        Update: {
+          back_sv?: string
+          created_at?: string
+          front_sv?: string
+          id?: string
+          lesson_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "flashcards_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lessons: {
+        Row: {
+          course_id: string
+          created_at: string
+          id: string
+          order_number: number
+          summary_sv: string | null
+          title_sv: string
+          updated_at: string
+          video_url: string
+        }
+        Insert: {
+          course_id: string
+          created_at?: string
+          id?: string
+          order_number: number
+          summary_sv?: string | null
+          title_sv: string
+          updated_at?: string
+          video_url: string
+        }
+        Update: {
+          course_id?: string
+          created_at?: string
+          id?: string
+          order_number?: number
+          summary_sv?: string | null
+          title_sv?: string
+          updated_at?: string
+          video_url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lessons_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quizzes: {
+        Row: {
+          answer_options: Json
+          correct_answer: number
+          created_at: string
+          id: string
+          lesson_id: string
+          question_sv: string
+          updated_at: string
+        }
+        Insert: {
+          answer_options: Json
+          correct_answer: number
+          created_at?: string
+          id?: string
+          lesson_id: string
+          question_sv: string
+          updated_at?: string
+        }
+        Update: {
+          answer_options?: Json
+          correct_answer?: number
+          created_at?: string
+          id?: string
+          lesson_id?: string
+          question_sv?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quizzes_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_badges: {
+        Row: {
+          badge_name: string
+          badge_type: string
+          earned_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          badge_name: string
+          badge_type: string
+          earned_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          badge_name?: string
+          badge_type?: string
+          earned_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_badges_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_lesson_progress: {
+        Row: {
+          completed: boolean | null
+          created_at: string
+          flashcards_reviewed: number | null
+          id: string
+          last_reviewed_at: string | null
+          lesson_id: string
+          quiz_score: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed?: boolean | null
+          created_at?: string
+          flashcards_reviewed?: number | null
+          id?: string
+          last_reviewed_at?: string | null
+          lesson_id: string
+          quiz_score?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed?: boolean | null
+          created_at?: string
+          flashcards_reviewed?: number | null
+          id?: string
+          last_reviewed_at?: string | null
+          lesson_id?: string
+          quiz_score?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_lesson_progress_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_lesson_progress_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_profiles: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          last_activity_date: string | null
+          name: string | null
+          progress: Json | null
+          streak_days: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id: string
+          last_activity_date?: string | null
+          name?: string | null
+          progress?: Json | null
+          streak_days?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          last_activity_date?: string | null
+          name?: string | null
+          progress?: Json | null
+          streak_days?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
