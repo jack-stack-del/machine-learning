@@ -232,6 +232,7 @@ export type Database = {
       }
       user_profiles: {
         Row: {
+          completed_lessons: number | null
           created_at: string
           email: string
           id: string
@@ -239,9 +240,11 @@ export type Database = {
           name: string | null
           progress: Json | null
           streak_days: number | null
+          total_xp: number | null
           updated_at: string
         }
         Insert: {
+          completed_lessons?: number | null
           created_at?: string
           email: string
           id: string
@@ -249,9 +252,11 @@ export type Database = {
           name?: string | null
           progress?: Json | null
           streak_days?: number | null
+          total_xp?: number | null
           updated_at?: string
         }
         Update: {
+          completed_lessons?: number | null
           created_at?: string
           email?: string
           id?: string
@@ -259,7 +264,65 @@ export type Database = {
           name?: string | null
           progress?: Json | null
           streak_days?: number | null
+          total_xp?: number | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      user_profiles_backup_20240612: {
+        Row: {
+          completed_lessons: number | null
+          created_at: string | null
+          email: string | null
+          id: string | null
+          last_activity_date: string | null
+          name: string | null
+          progress: Json | null
+          streak_days: number | null
+          total_xp: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          completed_lessons?: number | null
+          created_at?: string | null
+          email?: string | null
+          id?: string | null
+          last_activity_date?: string | null
+          name?: string | null
+          progress?: Json | null
+          streak_days?: number | null
+          total_xp?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          completed_lessons?: number | null
+          created_at?: string | null
+          email?: string | null
+          id?: string | null
+          last_activity_date?: string | null
+          name?: string | null
+          progress?: Json | null
+          streak_days?: number | null
+          total_xp?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      user_streaks_backup: {
+        Row: {
+          id: string | null
+          last_activity_date: string | null
+          streak_days: number | null
+        }
+        Insert: {
+          id?: string | null
+          last_activity_date?: string | null
+          streak_days?: number | null
+        }
+        Update: {
+          id?: string | null
+          last_activity_date?: string | null
+          streak_days?: number | null
         }
         Relationships: []
       }

@@ -7,6 +7,8 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import Layout from "@/components/Layout";
 import Dashboard from "@/pages/Dashboard";
+import Course from "@/pages/Course";
+import Lesson from "@/pages/Lesson";
 import Auth from "@/pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -70,6 +72,16 @@ const App = () => (
             <Route path="/" element={
               <ProtectedRoute>
                 <Dashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/course/:courseId" element={
+              <ProtectedRoute>
+                <Course />
+              </ProtectedRoute>
+            } />
+            <Route path="/lesson/:lessonId" element={
+              <ProtectedRoute>
+                <Lesson />
               </ProtectedRoute>
             } />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

@@ -1,5 +1,5 @@
-
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import CourseCard from '@/components/CourseCard';
@@ -16,6 +16,7 @@ interface CourseWithProgress extends Tables<'courses'> {
 
 const Dashboard = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [courses, setCourses] = useState<CourseWithProgress[]>([]);
   const [stats, setStats] = useState({
     totalLessons: 0,
@@ -135,8 +136,7 @@ const Dashboard = () => {
   };
 
   const handleStartCourse = (courseId: string) => {
-    // Navigate to course page - will be implemented with routing
-    console.log('Starting course:', courseId);
+    navigate(`/course/${courseId}`);
   };
 
   if (loading) {
