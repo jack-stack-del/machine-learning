@@ -2,7 +2,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
 import LessonCard from '@/components/LessonCard';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -24,7 +23,6 @@ interface CourseWithProgress extends Tables<'courses'> {
 
 const Course = () => {
   const { courseId } = useParams<{ courseId: string }>();
-  const { user } = useAuth();
   const navigate = useNavigate();
   const [course, setCourse] = useState<CourseWithProgress | null>(null);
   const [loading, setLoading] = useState(true);
@@ -34,7 +32,7 @@ const Course = () => {
     if (courseId) {
       fetchCourseData();
     }
-  }, [courseId, user]);
+  }, [courseId]);
 
   const fetchCourseData = async () => {
     try {
@@ -59,33 +57,17 @@ const Course = () => {
 
       if (lessonsError) throw lessonsError;
 
-      // Fetch user progress if logged in
-      let userProgress: any[] = [];
-      if (user) {
-        const { data: progressData, error: progressError } = await supabase
-          .from('user_lesson_progress')
-          .select('lesson_id, completed')
-          .eq('user_id', user.id);
-
-        if (progressError) throw progressError;
-        userProgress = progressData || [];
-      }
-
-      // Combine lessons with progress
+      // Set lessons without user progress (public mode)
       const lessonsWithProgress = lessonsData?.map((lesson) => ({
         ...lesson,
-        isCompleted: userProgress.some(
-          (progress) => progress.lesson_id === lesson.id && progress.completed
-        )
+        isCompleted: false // No user progress in public mode
       })) || [];
-
-      const completedCount = lessonsWithProgress.filter(lesson => lesson.isCompleted).length;
 
       setCourse({
         ...courseData,
         lessons: lessonsWithProgress,
         totalLessons: lessonsWithProgress.length,
-        completedLessons: completedCount
+        completedLessons: 0 // No user progress in public mode
       });
 
     } catch (error: any) {
@@ -100,7 +82,7 @@ const Course = () => {
     navigate(`/lesson/${lessonId}`);
   };
 
-  const progressPercentage = course ? (course.completedLessons / course.totalLessons) * 100 : 0;
+  const progressPercentage = 0; // No progress tracking in public mode
 
   if (loading) {
     return (
@@ -147,20 +129,19 @@ const Course = () => {
           )}
         </div>
 
-        {/* Progress Card */}
+        {/* Course Info Card */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
               <BookOpen className="h-5 w-5" />
-              <span>Ditt framsteg</span>
+              <span>Kursinformation</span>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex justify-between text-sm text-gray-600">
-              <span>{course.completedLessons} av {course.totalLessons} lektioner genomförda</span>
-              <span>{Math.round(progressPercentage)}%</span>
+              <span>{course.totalLessons} lektioner tillgängliga</span>
+              <span>Gratis och öppet innehåll</span>
             </div>
-            <Progress value={progressPercentage} className="w-full" />
           </CardContent>
         </Card>
       </div>

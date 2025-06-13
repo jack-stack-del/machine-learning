@@ -2,7 +2,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
 import VideoPlayer from '@/components/VideoPlayer';
 import FlashcardsComponent from '@/components/FlashcardsComponent';
 import QuizComponent from '@/components/QuizComponent';
@@ -12,8 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, CheckCircle, Clock, PlayCircle } from 'lucide-react';
-import { toast } from '@/components/ui/use-toast';
+import { ArrowLeft, PlayCircle, Clock, BookOpen } from 'lucide-react';
 import type { Tables } from '@/integrations/supabase/types';
 
 interface LessonData extends Tables<'lessons'> {
@@ -27,7 +25,6 @@ interface LessonData extends Tables<'lessons'> {
 
 const Lesson = () => {
   const { lessonId } = useParams<{ lessonId: string }>();
-  const { user } = useAuth();
   const navigate = useNavigate();
   const [lesson, setLesson] = useState<LessonData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -38,7 +35,7 @@ const Lesson = () => {
     if (lessonId) {
       fetchLessonData();
     }
-  }, [lessonId, user]);
+  }, [lessonId]);
 
   const fetchLessonData = async () => {
     try {
@@ -73,26 +70,11 @@ const Lesson = () => {
 
       if (quizzesError) throw quizzesError;
 
-      // Check if lesson is completed
-      let isCompleted = false;
-      if (user) {
-        const { data: progressData, error: progressError } = await supabase
-          .from('user_lesson_progress')
-          .select('completed')
-          .eq('user_id', user.id)
-          .eq('lesson_id', lessonId)
-          .single();
-
-        if (!progressError && progressData) {
-          isCompleted = progressData.completed || false;
-        }
-      }
-
       setLesson({
         ...lessonData,
         flashcards: flashcardsData || [],
         quizzes: quizzesData || [],
-        isCompleted
+        isCompleted: false // No user progress in public mode
       });
 
     } catch (error: any) {
@@ -100,37 +82,6 @@ const Lesson = () => {
       setError('Kunde inte ladda lektionsdata. Försök igen senare.');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const markLessonComplete = async () => {
-    if (!user || !lesson) return;
-
-    try {
-      const { error } = await supabase
-        .from('user_lesson_progress')
-        .upsert({
-          user_id: user.id,
-          lesson_id: lesson.id,
-          completed: true,
-          last_reviewed_at: new Date().toISOString()
-        });
-
-      if (error) throw error;
-
-      setLesson(prev => prev ? { ...prev, isCompleted: true } : null);
-      toast({
-        title: "Bra jobbat! 🎉",
-        description: "Du har slutfört denna lektion!"
-      });
-
-    } catch (error: any) {
-      console.error('Error marking lesson complete:', error);
-      toast({
-        title: "Fel",
-        description: "Kunde inte markera lektionen som slutförd.",
-        variant: "destructive"
-      });
     }
   };
 
@@ -167,17 +118,9 @@ const Lesson = () => {
           Tillbaka
         </Button>
         
-        {lesson.isCompleted ? (
-          <Badge variant="default" className="bg-green-600">
-            <CheckCircle className="mr-1 h-3 w-3" />
-            Slutförd
-          </Badge>
-        ) : (
-          <Button onClick={markLessonComplete} size="sm">
-            <CheckCircle className="mr-1 h-3 w-3" />
-            Markera som slutförd
-          </Button>
-        )}
+        <Badge variant="outline" className="bg-blue-50">
+          Gratis innehåll
+        </Badge>
       </div>
 
       {/* Lesson Info */}
@@ -210,7 +153,7 @@ const Lesson = () => {
             <span>Flashcards ({lesson.flashcards.length})</span>
           </TabsTrigger>
           <TabsTrigger value="quiz" className="flex items-center space-x-2">
-            <CheckCircle className="h-4 w-4" />
+            <BookOpen className="h-4 w-4" />
             <span>Quiz ({lesson.quizzes.length})</span>
           </TabsTrigger>
         </TabsList>
@@ -230,7 +173,7 @@ const Lesson = () => {
           <QuizComponent 
             quizzes={lesson.quizzes} 
             lessonId={lesson.id}
-            onQuizComplete={markLessonComplete}
+            onQuizComplete={() => {}} // No completion tracking in public mode
           />
         </TabsContent>
       </Tabs>

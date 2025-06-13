@@ -1,7 +1,7 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
 import CourseCard from '@/components/CourseCard';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -15,7 +15,6 @@ interface CourseWithProgress extends Tables<'courses'> {
 }
 
 const Dashboard = () => {
-  const { user } = useAuth();
   const navigate = useNavigate();
   const [courses, setCourses] = useState<CourseWithProgress[]>([]);
   const [stats, setStats] = useState({
@@ -29,7 +28,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     fetchDashboardData();
-  }, [user]);
+  }, []);
 
   const fetchDashboardData = async () => {
     try {
@@ -46,86 +45,24 @@ const Dashboard = () => {
 
       if (coursesError) throw coursesError;
 
-      // Fetch user progress if logged in
-      let progressData: any = {};
-      if (user) {
-        const { data: userProgressData, error: progressError } = await supabase
-          .from('user_lesson_progress')
-          .select('lesson_id, completed')
-          .eq('user_id', user.id);
-
-        if (progressError) throw progressError;
-
-        // Group progress by course
-        const { data: lessonsData, error: lessonsError } = await supabase
-          .from('lessons')
-          .select('id, course_id');
-
-        if (lessonsError) throw lessonsError;
-
-        // Calculate progress per course
-        progressData = lessonsData?.reduce((acc: any, lesson) => {
-          if (!acc[lesson.course_id]) {
-            acc[lesson.course_id] = { total: 0, completed: 0 };
-          }
-          acc[lesson.course_id].total += 1;
-          
-          const isCompleted = userProgressData?.some(
-            (progress: any) => progress.lesson_id === lesson.id && progress.completed
-          );
-          
-          if (isCompleted) {
-            acc[lesson.course_id].completed += 1;
-          }
-          
-          return acc;
-        }, {}) || {};
-
-        // Fetch user stats
-        const { data: profileData, error: profileError } = await supabase
-          .from('user_profiles')
-          .select('streak_days')
-          .eq('id', user.id)
-          .single();
-
-        if (!profileError && profileData) {
-          setStats(prev => ({
-            ...prev,
-            streak: profileData.streak_days || 0
-          }));
-        }
-
-        const { data: badgesData, error: badgesError } = await supabase
-          .from('user_badges')
-          .select('id')
-          .eq('user_id', user.id);
-
-        if (!badgesError && badgesData) {
-          setStats(prev => ({
-            ...prev,
-            badges: badgesData.length
-          }));
-        }
-      }
-
-      // Format courses data
+      // Format courses data without user progress
       const formattedCourses: CourseWithProgress[] = coursesData?.map((course: any) => ({
         ...course,
         lessonsCount: course.lessons?.[0]?.count || 0,
-        completedLessons: progressData[course.id]?.completed || 0
+        completedLessons: 0 // No user progress in public mode
       })) || [];
 
       setCourses(formattedCourses);
 
-      // Calculate total stats
+      // Calculate total stats without user data
       const totalLessons = formattedCourses.reduce((sum, course) => sum + course.lessonsCount, 0);
-      const completedLessons = formattedCourses.reduce((sum, course) => sum + course.completedLessons, 0);
       
-      setStats(prev => ({
-        ...prev,
+      setStats({
         totalLessons,
-        completedLessons
-      }));
+        completedLessons: 0,
+        streak: 0,
+        badges: 0
+      });
 
     } catch (error: any) {
       console.error('Error fetching dashboard data:', error);
@@ -169,10 +106,10 @@ const Dashboard = () => {
       {/* Welcome Message */}
       <div className="text-center space-y-2">
         <h2 className="text-3xl font-bold text-gray-900">
-          Hej {user?.email?.split('@')[0] || 'där'}! 👋
+          Välkommen till ML Svenska! 👋
         </h2>
         <p className="text-lg text-gray-600">
-          Redo att lära dig maskininlärning idag?
+          Lär dig maskininlärning gratis med Andrew Ngs kurser på svenska
         </p>
       </div>
 
@@ -180,47 +117,45 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Genomförda lektioner</CardTitle>
+            <CardTitle className="text-sm font-medium">Tillgängliga lektioner</CardTitle>
             <BookOpen className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.completedLessons}</div>
-            <p className="text-xs text-muted-foreground">av {stats.totalLessons} totalt</p>
+            <div className="text-2xl font-bold">{stats.totalLessons}</div>
+            <p className="text-xs text-muted-foreground">lektioner att utforska</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Nuvarande streak</CardTitle>
+            <CardTitle className="text-sm font-medium">Gratis innehåll</CardTitle>
             <Flame className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.streak}</div>
-            <p className="text-xs text-muted-foreground">dagar i rad</p>
+            <div className="text-2xl font-bold">100%</div>
+            <p className="text-xs text-muted-foreground">kostnadsfritt</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Intjänade märken</CardTitle>
+            <CardTitle className="text-sm font-medium">På svenska</CardTitle>
             <Trophy className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.badges}</div>
-            <p className="text-xs text-muted-foreground">prestationer</p>
+            <div className="text-2xl font-bold">🇸🇪</div>
+            <p className="text-xs text-muted-foreground">lokaliserat innehåll</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Framsteg totalt</CardTitle>
+            <CardTitle className="text-sm font-medium">Andrew Ng</CardTitle>
             <Target className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {stats.totalLessons > 0 ? Math.round((stats.completedLessons / stats.totalLessons) * 100) : 0}%
-            </div>
-            <p className="text-xs text-muted-foreground">genomfört</p>
+            <div className="text-2xl font-bold">⭐</div>
+            <p className="text-xs text-muted-foreground">expertundervisning</p>
           </CardContent>
         </Card>
       </div>
